@@ -99,13 +99,17 @@ router.put("/:id/like", async (req, res, next) => {
 
     let option = isLiked ? "$pull" : "$addToSet";
 
-    req.session.user = await User.findByIdAndUpdate(userId, { [option] : { likes : postId }}, { new : true, useFindAndModify: false})
+    req.session.user = await User.findByIdAndUpdate(userId, 
+        { [option] : { likes : postId }}, 
+        { new : true, useFindAndModify: false})
     .catch(error => {
         console.log(error);
         return res.sendStatus(400);
     });
 
-    let post = await Post.findByIdAndUpdate(postId, { [option] : { likes : userId }}, {new : true, useFindAndModify : false});
+    let post = await Post.findByIdAndUpdate(postId, 
+        { [option] : { likes : userId }}, 
+        {new : true, useFindAndModify : false});
 
     res.status(200).send(post);
 });
@@ -115,7 +119,8 @@ router.post("/:id/retweet", async (req, res, next) => {
     let userId = req.session.user._id;
 
 
-    let deletedPost = await Post.findOneAndDelete({ postedBy : userId, retweetData : postId})
+    let deletedPost = await Post.findOneAndDelete({ postedBy : userId, 
+        retweetData : postId})
     .catch(err => {
         console.log(err);
         return res.sendStatus(400);
@@ -126,19 +131,24 @@ router.post("/:id/retweet", async (req, res, next) => {
     let repost = deletedPost;
 
     if(repost == null){
-        repost = await Post.create({ postedBy : userId, retweetData : postId})
+        repost = await Post.create({ postedBy : userId, 
+            retweetData : postId})
         .catch(err => {
             console.log(err);
             res.sendStatus(400);
         });
     }
-    req.session.user = await User.findByIdAndUpdate(userId, { [option] : { retweets : repost._id }}, { new : true, useFindAndModify: false})
+    req.session.user = await User.findByIdAndUpdate(userId, 
+        { [option] : { retweets : repost._id }}, 
+        { new : true, useFindAndModify: false})
     .catch(error => {
         console.log(error);
         return res.sendStatus(400);
     });
 
-    let post = await Post.findByIdAndUpdate(postId, { [option] : { retweetUsers : userId }}, {new : true, useFindAndModify : false});
+    let post = await Post.findByIdAndUpdate(postId, 
+        { [option] : { retweetUsers : userId }}, 
+        {new : true, useFindAndModify : false});
 
     res.status(200).send(post);
 });

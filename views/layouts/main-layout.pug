@@ -15,8 +15,9 @@ html(lang="en")
         .wrapper
             .row
                 nav.col-2
-                    a.blue(href="/")
-                        i.fas.fa-dove 
+                    //a.blue(href="/")
+                    b ConnecTalk
+                        //i.fas.fa-dove 
                     a(href="/")
                         i.fas.fa-home
                     a(href="/search")
@@ -32,6 +33,7 @@ html(lang="en")
                 .mainSectionContainer.col-10.col-md-8.col-lg-6 
                     .titleContainer
                         h1 #{pageTitle}
+                        block headerButton
                     block content 
                 .d-none.d-md-block.col-md-2.col-lg-4 
                     span third column 
