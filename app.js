@@ -8,6 +8,7 @@ const mongoose = require("./database");
 const session = require("express-session");
 
 const server = app.listen(port, () => console.log("Server listening on port " + port));
+const io = require("socket.io")(server, { pingTimeout : 60000 });
 
 app.set("view engine", "pug");
 app.set("views", "views");
@@ -33,6 +34,8 @@ const uploadRoute = require("./routes/uploadRoutes");
 const searchRoute = require("./routes/searchRoutes");
 const messagesRoute = require("./routes/messagesRoutes");
 const chatsRoute = require("./routes/api/chats");
+const messages = require("./routes/api/messages");
+
 
 
 app.use("/login", loginRoute);
@@ -43,6 +46,7 @@ app.use("/api/chats", chatsRoute);
 app.use("/posts", middleware.requireLogin, postRoute);
 app.use("/profile", middleware.requireLogin, profileRoute);
 app.use("/api/users", users);
+app.use("/api/messages", messages);
 app.use("/uploads", uploadRoute);
 app.use("/search", middleware.requireLogin, searchRoute);
 app.use("/messages", middleware.requireLogin, messagesRoute);
@@ -58,3 +62,12 @@ app.get("/", middleware.requireLogin, (req, res, next) => {
 
     res.status(200).render("home", payload);
 })
+
+io.on("connection", (socket) => {
+    socket.on("setup", userData => {
+        socket.join(userData._id);
+        socket.emit("connected");
+    })
+    socket.on("join room", room => socket.join(room));
+    socket.on("typing", room => socket.in(room).emit("typing"));
+});

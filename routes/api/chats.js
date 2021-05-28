@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const bodyParser = require("body-parser");
 const Chat = require('../../schemas/ChatSchema');
+const Message = require('../../schemas/MessageSchema');
+const User = require('../../schemas/UserSchema');
 
 const router = express.Router();
 
@@ -34,7 +36,20 @@ router.post("/", async (req, res, next) => {
 router.get("/", (req, res, next) => {
     Chat.find({ users : { $elemMatch : { $eq : req.session.user._id } }})
     .populate("users")
+    .populate("latestMessage")
     .sort({ updatedAt : -1 })
+    .then(async results => {
+        results = await User.populate(results, { path : "latestMessage.sender"}); 
+        return res.status(200).send(results);
+    })
+    .catch(err => {
+        console.log(err);
+        return res.sendStatus(400);
+    })
+});
+router.get("/:chatId", (req, res, next) => {
+    Chat.findOne({ _id : req.params.chatId, users : { $elemMatch : { $eq : req.session.user._id } }})
+    .populate("users")
     .then(results => res.status(200).send(results))
     .catch(err => {
         console.log(err);
@@ -42,5 +57,22 @@ router.get("/", (req, res, next) => {
     })
 });
 
+router.put("/:chatId", (req, res, next) => {
+    Chat.findByIdAndUpdate(req.params.chatId, req.body, { useFindAndModify : false})
+    .then(results => res.sendStatus(204))
+    .catch(err => {
+        console.log(err);
+        return res.sendStatus(400);
+    })
+});
+router.get("/:chatId/messages", (req, res, next) => {
+    Message.find({ chat : req.params.chatId })
+    .populate("sender")
+    .then(results => res.status(200).send(results))
+    .catch(err => {
+        console.log(err);
+        return res.sendStatus(400);
+    })
+});
 
 module.exports = router;
