@@ -1,33 +1,73 @@
-const express = require("express");
-const middleware = require("./middleware")
+const express = require('express');
+const bodyParser = require("body-parser");
 const app = express();
-const path = require("path") 
-const bodyParser = require("body-parser")
-const db = require("./database");
-const port = 3002;
+const port = 3003;
+const middleware = require('./middleware');
+const path = require("path");
+const mongoose = require("./database");
+const session = require("express-session");
 
-// const db = new Database();
+const server = app.listen(port, () => console.log("Server listening on port " + port));
+const io = require("socket.io")(server, { pingTimeout : 60000 });
 
-app.set("view engine","pug");
-app.set("views","views");
-app.use(bodyParser.urlencoded({extended :false}));
+app.set("view engine", "pug");
+app.set("views", "views");
 
 
-app.use(express.static(path.join(__dirname,"public")));  
+app.use(bodyParser.urlencoded({ extended : false }));
+app.use(express.static(path.join(__dirname, "public")));
+
+app.use(session({
+    secret : "Bhanu kumar",
+    resave : true,
+    saveUninitialized : false
+}))
 //Routes
 const loginRoute = require("./routes/loginRoutes");
 const registerRoute = require("./routes/registerRoutes");
-app.use("/login",loginRoute);
-app.use("/register",registerRoute);
+const logoutRoute = require("./routes/logoutRoutes");
+const posts = require("./routes/api/posts");
+const postRoute = require("./routes/postRoutes");
+const profileRoute = require("./routes/profileRoutes");
+const users = require("./routes/api/users");
+const uploadRoute = require("./routes/uploadRoutes");
+const searchRoute = require("./routes/searchRoutes");
+const messagesRoute = require("./routes/messagesRoutes");
+const chatsRoute = require("./routes/api/chats");
+const messages = require("./routes/api/messages");
 
-app.get("/",middleware.requireLogin, (req,res,next) => {
+
+
+app.use("/login", loginRoute);
+app.use("/register", registerRoute);
+app.use("/logout", logoutRoute);
+app.use("/api/posts", posts);
+app.use("/api/chats", chatsRoute);
+app.use("/posts", middleware.requireLogin, postRoute);
+app.use("/profile", middleware.requireLogin, profileRoute);
+app.use("/api/users", users);
+app.use("/api/messages", messages);
+app.use("/uploads", uploadRoute);
+app.use("/search", middleware.requireLogin, searchRoute);
+app.use("/messages", middleware.requireLogin, messagesRoute);
+
+
+app.get("/", middleware.requireLogin, (req, res, next) => {
 
     var payload = {
-        pageTitle : "Home"
+        pageTitle: "Home",
+        userLoggedIn : req.session.user,
+        userLoggedInJS : JSON.stringify(req.session.user)
     }
-    res.status(200).render("home",payload);
-});
 
-const server = app.listen(port, () => {
-    console.log("listening on port  "+ port);
+    res.status(200).render("home", payload);
+})
+
+io.on("connection", (socket) => {
+    socket.on("setup", userData => {
+        socket.join(userData._id);
+        socket.emit("connected");
+    })
+    socket.on("join room", room => socket.join(room));
+    socket.on("typing", room => socket.in(room).emit("typing"));
 });

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 extends layouts/login-layout.pug
 
 block content
@@ -24,6 +25,36 @@ block content
                 alert("Passwords do not match. Please try again")
             }
             else {
+=======
+extends  layouts/login-layout.pug
+
+block content 
+    .loginContainer 
+        h1 Register  
+        form#registerForm(method="post", onsubmit="event.preventDefault(); validate();")
+            p.errorMessage #{errorMessage}
+            input(type="text", name="firstName", placeholder="First Name", value=firstName, required)
+            input(type="text", name="lastName", placeholder="Last Name", value=lastName, required) 
+
+            input(type="text", name="username", placeholder="Username", value=username, required) 
+            input(type="email", name="email", placeholder="Eamil", value=email, required) 
+
+            input#password(type="password", name="password", placeholder="Password", required)
+            input#confirmPassword(type="password", name="passwordConfirm", placeholder="Confirm Password", required)
+
+            input(type="submit", value="REGISTER")
+        a(href=" /login") Already have an account? Login Here. 
+
+    script.
+        var password = document.getElementById("password");
+        var confirmPassword = document.getElementById("confirmPassword"); 
+        var form = document.getElementById("registerForm"); 
+
+        function validate() {
+            if(password.value != confirmPassword.value){
+                alert("Passwords do not match.");
+            }else{
+>>>>>>> f9931174a2be942912b86c38df3dc4172b7bbbd7
                 form.submit();
             }
         }
