@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-const express = require("express");
-const app = express();
-const router = express.Router();
-
-app.set("view engine","pug");
-app.set("views","views");
-
-router.get("/", (req,res,next) => {
- 
-    res.status(200).render("login");
-});
-
-=======
 const express = require('express');
 const app = express();
 const bodyParser = require("body-parser");
@@ -58,5 +44,4 @@ router.post("/", async (req, res, next) => {
     payload.errorMessage = "Make sure each field has a valid value.";
     res.status(200).render("login", payload);
 })
->>>>>>> f9931174a2be942912b86c38df3dc4172b7bbbd7
 module.exports = router;
