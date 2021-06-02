@@ -9,6 +9,7 @@ const upload = multer({ dest : "uploads/" });
 const router = express.Router();
 const path = require("path");
 const fs = require("fs");
+const Notification = require('../../schemas/NotificationSchema');
 
 app.use(bodyParser.urlencoded({ extended : false }));
 
@@ -40,17 +41,24 @@ router.put("/:userId/follow", async (req, res, next) => {
     let isFollowing = user.followers && user.followers.includes(req.session.user._id);
     let option = isFollowing ? "$pull" : "$addToSet";
     
-    req.session.user = await User.findByIdAndUpdate(req.session.user._id, { [option] : { following : userId }}, { new : true, useFindAndModify: false})
+    req.session.user = await User.findByIdAndUpdate(req.session.user._id, 
+        { [option] : { following : userId }}, 
+        { new : true, useFindAndModify: false})
     .catch(err => {
         console.log(err);
         res.sendStatus(400);
     }) 
     
-    User.findByIdAndUpdate(userId, {[option] : { followers : req.session.user._id }}, { new : true, useFindAndModify: false})
+    User.findByIdAndUpdate(userId, 
+        {[option] : { followers : req.session.user._id }}, 
+        { new : true, useFindAndModify: false})
     .catch(err => {
         console.log(err);
         res.sendStatus(400);
     })
+    if(!isFollowing){
+        await Notification.insertNotification(userId, req.session.user._id, "follow", req.session.user._id);
+    }
 
     res.status(200).send(req.session.user);
 });

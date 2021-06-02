@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const User = require("../../schemas/UserSchema");
 const bcrypt = require("bcrypt");
 const Post = require('../../schemas/PostSchema');
+const Notification = require('../../schemas/NotificationSchema');
 
 const router = express.Router();
 
@@ -65,7 +66,6 @@ router.get("/:id", async (req, res, next) => {
     }
 
     results.replies = await getPosts({ replyTo : id });
-    console.log(results);
     return res.status(200).send(results);
 })
 
@@ -74,6 +74,7 @@ router.post("/", async (req, res, next) => {
         console.log("content param was not sent with request");
         return res.sendStatus(400);
     }
+   
     let postData = {
         content : req.body.content,
         postedBy : req.session.user
@@ -81,9 +82,17 @@ router.post("/", async (req, res, next) => {
     if(req.body.replyTo){
         postData.replyTo = req.body.replyTo;
     }
+    
     Post.create(postData)
     .then(async newPost => {
         newPost = await User.populate(newPost, { path : "postedBy"});
+        newPost = await Post.populate(newPost, { path : "replyTo"});
+
+        if(newPost.replyTo !== undefined){
+           
+            await Notification.insertNotification(newPost.replyTo.postedBy, req.session.user._id, "reply", newPost._id);
+        }
+
         res.status(201).send(newPost);
     }).catch(err => {
         console.log(err);
@@ -110,7 +119,9 @@ router.put("/:id/like", async (req, res, next) => {
     let post = await Post.findByIdAndUpdate(postId, 
         { [option] : { likes : userId }}, 
         {new : true, useFindAndModify : false});
-
+    if(!isLiked){
+        await Notification.insertNotification(post.postedBy, userId, "postLike", post._id);
+    }
     res.status(200).send(post);
 });
 router.post("/:id/retweet", async (req, res, next) => {
@@ -120,7 +131,7 @@ router.post("/:id/retweet", async (req, res, next) => {
 
 
     let deletedPost = await Post.findOneAndDelete({ postedBy : userId, 
-        retweetData : postId})
+        retweetData : postId}, { useFindAndModify : false})
     .catch(err => {
         console.log(err);
         return res.sendStatus(400);
@@ -150,6 +161,9 @@ router.post("/:id/retweet", async (req, res, next) => {
         { [option] : { retweetUsers : userId }}, 
         {new : true, useFindAndModify : false});
 
+    if(deletedPost == null){
+        await Notification.insertNotification(post.postedBy, userId, "retweet", post._id);
+    }
     res.status(200).send(post);
 });
 
@@ -165,7 +179,8 @@ router.delete("/:id", async (req, res, next) => {
 });
 router.put("/:id", async (req, res, next) => {
     if(req.body.pinned !== undefined){
-        await Post.updateMany({ postedBy : req.session.user }, { pinned : false })
+        await Post.updateMany({ postedBy : req.session.user }, 
+            { pinned : false })
         .catch(err => {
             console.log(err);
             return res.sendStatus(400);

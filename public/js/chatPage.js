@@ -1,6 +1,9 @@
+var typing = false;
+var lastTypingTime;
 $(document).ready(() => {
     socket.emit("join room", chatId);
     $.get(`/api/chats/${chatId}`, (data) => $("#chatName").text(getChatName(data)));
+
     $.get(`/api/chats/${chatId}/messages`, (data) => {
         var messages = [];
         var lastSenderId = "";
@@ -8,10 +11,12 @@ $(document).ready(() => {
             var html = createMessageHtml(message, data[index + 1], lastSenderId);
             messages.push(html);
             lastSenderId = message.sender._id;
+            messageId = message._id;
         })
         var messagesHtml = messages.join("");
         addMessagesHtmlToPage(messagesHtml);
         scrollToBottom(false);
+        markAllMessagesAsRead();
     });
 });
 
@@ -41,7 +46,20 @@ $(".inputTextBox").keydown(event => {
     } 
 })
 function updateTyping(){
-    socket.emit("typing", chatId);
+    if(!connected) return ;
+    if(!typing){
+        typing = true;
+        socket.emit("typing", chatId);
+    }
+    lastTypingTime = new Date().getTime();
+    var timerLength = 2000;
+    setTimeout(() => {
+        var diff = new Date().getTime() - lastTypingTime;
+        if(diff >= timerLength && typing){
+            socket.emit("stop typing", chatId);
+            typing = false;
+        }
+    }, timerLength);
 }
 $(".sendMessageButton").click(() => {
     messageSubmitted();
@@ -52,6 +70,8 @@ function messageSubmitted(){
     if(content != ""){
         sendMessage(content);
         $(".inputTextBox").val("");
+        socket.emit("stop typing", chatId);
+        typing = false;
     }
 }
 
@@ -63,7 +83,10 @@ function sendMessage(content){
             return ;     
         }
         addChatMessageHtml(data);
-        scrollToBottom(true);
+        markAllMessagesAsRead();
+        if(connected){
+            socket.emit("new message", data);
+        }
     })
 }
 
@@ -77,6 +100,8 @@ function addChatMessageHtml(message){
     }
     var messageDiv = createMessageHtml(message, null, "");
     addMessagesHtmlToPage(messageDiv);
+    scrollToBottom(true);
+
 }
 
 function createMessageHtml(message, nextMessage, lastSenderId){
@@ -128,4 +153,11 @@ function scrollToBottom(animated){
     }else{
         container.scrollTop(scrollHeight);
     }
+}
+function markAllMessagesAsRead(){
+    $.ajax({
+        url : `/api/chats/${chatId}/messages/markAsRead`,
+        type: "PUT",
+        success: () => refreshMessagesBadge()
+    })
 }
