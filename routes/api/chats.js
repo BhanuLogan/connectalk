@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const Chat = require('../../schemas/ChatSchema');
 const Message = require('../../schemas/MessageSchema');
 const User = require('../../schemas/UserSchema');
-
+const mongoose = require("mongoose");
 const router = express.Router();
 
 
@@ -21,9 +21,22 @@ router.post("/", async (req, res, next) => {
         return res.sendStatus(400);
     }
     users.push(req.session.user);
+    
     const chatData = {
         users,
-        isGroupChat : true
+        isGroupChat : users.length > 2
+    }
+    var chat = await Chat.findOne({
+        users : {
+            $size : 2,
+            $all : [
+                { $elemMatch : { $eq : mongoose.Types.ObjectId(users[0]._id) }},
+                { $elemMatch : { $eq : mongoose.Types.ObjectId(users[1]._id) }}
+            ]
+        }
+    });
+    if(chat != null){
+        return res.status(200).send(chat);
     }
     Chat.create(chatData)
     .then(results => res.status(200).send(results))

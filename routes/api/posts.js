@@ -121,6 +121,8 @@ router.put("/:id/like", async (req, res, next) => {
         {new : true, useFindAndModify : false});
     if(!isLiked){
         await Notification.insertNotification(post.postedBy, userId, "postLike", post._id);
+    }else{
+        await Notification.deleteNotification(post.postedBy, userId, "postLike", post._id);
     }
     res.status(200).send(post);
 });
@@ -163,6 +165,8 @@ router.post("/:id/retweet", async (req, res, next) => {
 
     if(deletedPost == null){
         await Notification.insertNotification(post.postedBy, userId, "retweet", post._id);
+    }else{
+        await Notification.deleteNotification(post.postedBy, userId, "retweet", post._id);
     }
     res.status(200).send(post);
 });
@@ -170,7 +174,13 @@ router.post("/:id/retweet", async (req, res, next) => {
 router.delete("/:id", async (req, res, next) => {
     let postId = req.params.id;
     Post.findByIdAndDelete(postId)
-    .then(() => {
+    .then(async (newPost) => {
+        newPost = await Post.populate(newPost, { path : "replyTo"});
+
+        if(newPost.replyTo !== undefined){
+           
+            await Notification.deleteNotification(newPost.replyTo.postedBy, req.session.user._id, "reply", newPost._id);
+        }
         return res.sendStatus(202);
     }).catch(err => {
         console.log(err);

@@ -1,10 +1,19 @@
 $(document).ready(() => {
+    refreshFollowersAndFollowing();
     if(selectedTab == "replies"){
         loadReplies();
     }else
         loadPosts();
 });
-
+function refreshFollowersAndFollowing(){
+    $.get(`/api/users/${profileUserId}/followers`, (results) => {
+        var followers = results.followers == undefined ? 0 : results.followers.length;
+        var following = results.following == undefined ? 0 : results.following.length;
+        $("#followersValue").text(followers);
+        $("#followingValue").text(following);
+        
+    });
+}
 function loadPosts(){
     $.get("/api/posts", { postedBy : profileUserId, pinned : true }, results => {
         outputPinnedPosts(results, $(".pinnedPostContainer"));    

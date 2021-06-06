@@ -10,7 +10,7 @@ const router = express.Router();
 const path = require("path");
 const fs = require("fs");
 const Notification = require('../../schemas/NotificationSchema');
-
+const { updateOnlineStatus } = require("../utils/utils");
 app.use(bodyParser.urlencoded({ extended : false }));
 
 router.get("/", async (req, res, next) => {
@@ -58,6 +58,8 @@ router.put("/:userId/follow", async (req, res, next) => {
     })
     if(!isFollowing){
         await Notification.insertNotification(userId, req.session.user._id, "follow", req.session.user._id);
+    }else{
+        await Notification.deleteNotification(userId, req.session.user._id, "follow", req.session.user._id);
     }
 
     res.status(200).send(req.session.user);
@@ -82,7 +84,7 @@ router.get("/:userId/followers", async (req, res, next) => {
         console.log(err);
         res.sendStatus(400);
     })
-})
+});
 router.post("/profilePicture", upload.single("croppedImage"), async (req, res, next) => {
     if(!req.file){
         console.log("No file uploaded with ajax request");
@@ -121,5 +123,22 @@ router.post("/coverPhoto", upload.single("croppedImage"), async (req, res, next)
         req.session.user = await User.findByIdAndUpdate(req.session.user._id, { coverPhoto : filePath }, { new : true, useFindAndModify : false });
         res.sendStatus(204);
     });
-})
+});
+
+router.put("/:userId/updateOnlineStatus", async (req, res, next) => {
+    if(!req.body) {
+        console.log("No data is sent in body");
+        return res.sendStatus(400);
+    }
+    
+    updateOnlineStatus(req.params.userId, req.body)
+    .then(() => res.sendStatus(204))
+    .catch(err => {
+        console.log(err);
+        return res.sendStatus(400);
+    });
+});
+
+
+
 module.exports = router;

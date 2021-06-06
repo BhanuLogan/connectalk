@@ -10,7 +10,7 @@ block content
 
         - followersCount = profileUser.followers.length
         - followingCount = profileUser.following.length   
-        .profileHeaderContainer
+        #profilePage.profileHeaderContainer
             .coverPhotoSection
                 .coverPhotoContainer 
                     if profileUser.coverPhoto   
@@ -41,10 +41,10 @@ block content
                 span.description #{profileUser.description}
                 .followersContainer 
                     a(href=`/profile/${profileUser.username}/following`)
-                        span.value #{followingCount}
+                        span#followingValue.value 
                         span Following 
                     a(href=`/profile/${profileUser.username}/followers`)
-                        span#followersValue.value #{followersCount}
+                        span#followersValue.value
                         span Followers
             .tabsContainer  
                 +createTab("Posts", `/profile/${profileUser.username}`, selectedTab != "replies")

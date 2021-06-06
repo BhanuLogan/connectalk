@@ -2,7 +2,9 @@ var typing = false;
 var lastTypingTime;
 $(document).ready(() => {
     socket.emit("join room", chatId);
-    $.get(`/api/chats/${chatId}`, (data) => $("#chatName").text(getChatName(data)));
+    refreshChatTitleBar();
+    socket.on("typing", () => $("#typing").text("typing..."));
+    socket.on("stop typing", () => refreshChatTitleBar());
 
     $.get(`/api/chats/${chatId}/messages`, (data) => {
         var messages = [];
@@ -20,6 +22,47 @@ $(document).ready(() => {
     });
 });
 
+function refreshChatTitleBar(){
+    $.get(`/api/chats/${chatId}`, (data) =>{ 
+        $("#chatName").text(getChatName(data));
+        var onlineStatus = getOnlineStatus(data.users);
+        $("#typing").text(onlineStatus);
+    });
+}
+function getOnlineStatus(users){
+    if(users.length > 2) return "";
+    users = users.filter(user => user._id != userLoggedIn._id);
+    return users[0].online != "Online" ? getLastSeen(users[0]) : "Online";
+}
+function getLastSeen(user){
+    var timestamp = user.online * 1;
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var datetime = new Date(timestamp);
+    var lastSeen = "last seen at ";
+    var hours = datetime.getHours();
+    var minutes = datetime.getMinutes();
+    var date = datetime.getDate();
+    var dateStr = "";
+    if(date % 10 == 1)
+        dateStr = date + "st";
+    else if(date % 10 == 2)
+        dateStr = date + "nd";
+    else if(date % 10 == 3)
+        dateStr = date + "rd";
+    else 
+        dateStr = date + "th";
+    var month = datetime.getMonth();
+    var year = datetime.getFullYear();
+    var session = "AM";
+    if(hours >= 12){
+       session = "PM"; 
+       if(hours > 12)
+        hours -= 12;
+    }
+    lastSeen += (hours == 0 ? "00" : hours) + ":" + (minutes < 10 ? '0' : "") + minutes  + session;
+    lastSeen += " on " + dateStr + " " + months[month] + " " + year;
+    return lastSeen;
+}
 $("#chatNameButton").click(() => {
     var name = $("#chatNameTextBox").val().trim();
 

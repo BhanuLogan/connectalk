@@ -1,5 +1,6 @@
 $(document).ready(() => {
     getChatList();
+    refreshOnlineUsers();
 });
 
 function outputChatList(chatList, container){
