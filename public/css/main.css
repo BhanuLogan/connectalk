@@ -335,6 +335,7 @@ button span {
     display: flex;
     flex-direction: column;
     padding: 0 var(--spacing);
+    margin-top: 13px;
 }
 
 .followersContainer .value {
@@ -490,7 +491,7 @@ button span {
     margin: 0 10px 0 0;
 }
 
-#userSearchTextbox {
+#userSearchTextBox {
     border: none;
     flex: 1;
     font-weight: 200;
@@ -678,7 +679,7 @@ button span {
     margin-left: -10px;
 }
 
-#chatNameTextbox {
+#chatNameTextBox {
     width: 100%;
 }
 
@@ -692,7 +693,7 @@ button span {
 
 .typingDots img,
 .chatMessages .message .messageBody {
-    background-color: #f1f0f0;
+    background-color: var(--lightGrey);
     padding: 6px 12px;
     border-radius: 18px;
     font-size: 14px;
@@ -822,4 +823,17 @@ button span {
 }
 #notificationsBadge.active, #messagesBadge.active{
     visibility: visible;
+}
+#notificationList {
+    position: fixed;
+    top: 5px;
+    right: 5px;
+    width: 350px;
+    background-color: white;
+    box-shadow: 0px 1px 4px rgba(0,0,0,0.3);
+    -webkit-box-shadow: 0px 1px 4px rgba(0,0,0,0.3);
+    -moz-box-shadow: 0px 1px 4px rgba(0,0,0,0.3);
+}
+#notificationList .active {
+    background-color: white;
 }

@@ -1,6 +1,16 @@
+
+
+var typing = false;
+var lastTypingTime;
 $(document).ready(() => {
     socket.emit("join room", chatId);
-    $.get(`/api/chats/${chatId}`, (data) => $("#chatName").text(getChatName(data)));
+    $.get(`/api/chats/${chatId}`, (data) => {
+        console.log(data);
+        $("#chatName").text(getChatName(data));
+        var onlineStatus = data.users.length > 2 ? "" : getOnlineStatus(data.users);
+        $("#typing").text(onlineStatus);
+    });
+
     $.get(`/api/chats/${chatId}/messages`, (data) => {
         var messages = [];
         var lastSenderId = "";
@@ -8,12 +18,25 @@ $(document).ready(() => {
             var html = createMessageHtml(message, data[index + 1], lastSenderId);
             messages.push(html);
             lastSenderId = message.sender._id;
+            messageId = message._id;
         })
         var messagesHtml = messages.join("");
         addMessagesHtmlToPage(messagesHtml);
         scrollToBottom(false);
+        markAllMessagesAsRead();
     });
 });
+
+function getOnlineStatus(users){
+    
+    users = users.filter(user => user._id != userLoggedIn._id);
+    users.forEach((user, index) => {
+        console.log(user.online);
+    })
+    //console.log(users);
+    return users[0].online;
+
+}
 
 $("#chatNameButton").click(() => {
     var name = $("#chatNameTextBox").val().trim();
@@ -41,7 +64,20 @@ $(".inputTextBox").keydown(event => {
     } 
 })
 function updateTyping(){
-    socket.emit("typing", chatId);
+    if(!connected) return ;
+    if(!typing){
+        typing = true;
+        socket.emit("typing", chatId);
+    }
+    lastTypingTime = new Date().getTime();
+    var timerLength = 2000;
+    setTimeout(() => {
+        var diff = new Date().getTime() - lastTypingTime;
+        if(diff >= timerLength && typing){
+            socket.emit("stop typing", chatId);
+            typing = false;
+        }
+    }, timerLength);
 }
 $(".sendMessageButton").click(() => {
     messageSubmitted();
@@ -52,6 +88,8 @@ function messageSubmitted(){
     if(content != ""){
         sendMessage(content);
         $(".inputTextBox").val("");
+        socket.emit("stop typing", chatId);
+        typing = false;
     }
 }
 
@@ -63,7 +101,10 @@ function sendMessage(content){
             return ;     
         }
         addChatMessageHtml(data);
-        scrollToBottom(true);
+        markAllMessagesAsRead();
+        if(connected){
+            socket.emit("new message", data);
+        }
     })
 }
 
@@ -77,6 +118,8 @@ function addChatMessageHtml(message){
     }
     var messageDiv = createMessageHtml(message, null, "");
     addMessagesHtmlToPage(messageDiv);
+    scrollToBottom(true);
+
 }
 
 function createMessageHtml(message, nextMessage, lastSenderId){
@@ -128,4 +171,11 @@ function scrollToBottom(animated){
     }else{
         container.scrollTop(scrollHeight);
     }
+}
+function markAllMessagesAsRead(){
+    $.ajax({
+        url : `/api/chats/${chatId}/messages/markAsRead`,
+        type: "PUT",
+        success: () => refreshMessagesBadge()
+    })
 }

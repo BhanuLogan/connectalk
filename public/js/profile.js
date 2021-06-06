@@ -7,8 +7,7 @@ $(document).ready(() => {
 
 function loadPosts(){
     $.get("/api/posts", { postedBy : profileUserId, pinned : true }, results => {
-        outputPinnedPosts(results, $(".pinnedPostContainer"));
-        
+        outputPinnedPosts(results, $(".pinnedPostContainer"));    
     });
     $.get("/api/posts", { postedBy : profileUserId, isReply: false }, results => {
         outputPosts(results, $(".postsContainer"));

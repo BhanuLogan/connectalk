@@ -10,13 +10,13 @@ block content
         .chatPageContainer 
             .chatTitleBarContainer 
                 +createChatImage(chat, userLoggedIn)
-                span(data-toggle="modal", data-target="#chatNameModal")#chatName
+                .chatTitle
+                    span(data-toggle="modal", data-target="#chatNameModal")#chatName
+                    span#typing 
 
             .mainContentContainer 
-                .chatContainer 
+                .chatContainer(data-room=chat._id) 
                     ul.chatMessages
-                    .typingDots 
-                        img(src="/images/dots.gif", alt="typing dots")
                     .footer 
                         textarea.inputTextBox(name="messageInput", placeholder="Type a message...")
                         button.sendMessageButton 
