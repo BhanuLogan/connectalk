@@ -740,7 +740,6 @@ function showMessagePopup(data){
 function refreshOnlineUsers(){
     $.get(`/api/users/${userLoggedIn._id}/following`, results => {
         results = results.following;
-        console.log(results);
         results = results.filter(user => user.online == "Online");
         var container = $(".onlineUsers");
         var heading = "<div class='onlineHeading'> Online users </div>";
@@ -749,7 +748,6 @@ function refreshOnlineUsers(){
             var html = createOnlineUserHtml(result);
             container.append(html);
         });
-        console.log(results);
         if(results.length == 0){
             container.append(`<span class='noResults'>No online users</span>`)
         }
