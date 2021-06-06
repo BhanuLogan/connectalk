@@ -74,7 +74,10 @@ $("#userSearchTextBox").keydown(() => {
 
 $("#createChatButton").click(() => {
     const data = JSON.stringify(selectedUsers);
-    $.post("/api/chats", { users : data }, chat => {
+    var chatData = {
+        users: data
+    }
+    $.post("/api/chats", chatData, chat => {
         if(!chat || !chat._id) return alert("Invalid response from server");
         window.location.href = `/messages/${chat._id}`;
     });
@@ -202,7 +205,7 @@ $("#imageUploadButton").click(() => {
     canvas.toBlob((blob) => {
         var formData = new FormData();
         formData.append("croppedImage", blob);
-        console.log(formData);
+
         $.ajax({
             url : "/api/users/profilePicture",
             type : "POST",
@@ -277,6 +280,7 @@ $(document).on("click", ".followButton", (e) => {
                 button.text("Following");
                 emitNotification(userId);
             }else{
+                socket.emit("unfollow", userId);
                 button.removeClass("following");
                 button.text("Follow");
                 difference = -1;
@@ -294,7 +298,7 @@ $(document).on("click", ".followButton", (e) => {
 $(document).on("click", ".notification.active", (e) => {
     var container = $(e.target);
     var notificationId = container.data().id;
-    console.log(container);
+
     var href = container.attr("href");
     e.preventDefault();
     var callback = () => window.location = href;
@@ -732,4 +736,40 @@ function showMessagePopup(data){
     var element = $(html);
     element.hide().prependTo("#notificationList").slideDown("fast");
     setTimeout(() => element.fadeOut(400), 5000);
+}
+function refreshOnlineUsers(){
+    $.get(`/api/users/${userLoggedIn._id}/following`, results => {
+        results = results.following;
+        console.log(results);
+        results = results.filter(user => user.online == "Online");
+        var container = $(".onlineUsers");
+        var heading = "<div class='onlineHeading'> Online users </div>";
+        container.html(heading);
+        results.forEach(result => {
+            var html = createOnlineUserHtml(result);
+            container.append(html);
+        });
+        console.log(results);
+        if(results.length == 0){
+            container.append(`<span class='noResults'>No online users</span>`)
+        }
+    });
+}
+function createOnlineUserHtml(userData){
+    var name = userData.firstName + " " + userData.lastName;
+    
+
+    return `<div class='user'>
+                <div class='userImageContainer'>
+                    <img src='${userData.profilePic}' />
+                </div>
+                <div class='userDetailsContainer'>
+                    <div class='header'>
+                        <a href='/profile/${userData.username}'>${name}</a>
+                    </div>
+                    <div class='online'>
+                        Online
+                    </div>
+                </div>
+            </div>`
 }

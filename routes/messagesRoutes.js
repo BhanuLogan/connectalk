@@ -36,6 +36,7 @@ router.get("/:chatId", async (req, res, next) => {
     }
     let chat = await Chat.findOne({ _id : chatId, users : { $elemMatch : { $eq : userId }}})
     .populate("users");
+    
     if(chat == null){
         let userFound = await User.findById(chatId);
         
