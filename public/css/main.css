@@ -826,7 +826,7 @@ button span {
     pointer-events: none;
 }
 
-#notificationsBadge, #messagesBadge {
+#notificationsBadge, #messagesBadge, #postsBadge {
     background-color: var(--red);
     height: 25px;
     width: 25px;
@@ -841,7 +841,7 @@ button span {
     justify-content: center;
     visibility: hidden;
 }
-#notificationsBadge.active, #messagesBadge.active{
+#notificationsBadge.active, #messagesBadge.active, #postsBadge.active{
     visibility: visible;
 }
 #notificationList {

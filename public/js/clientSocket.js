@@ -16,14 +16,21 @@ socket.on("stop typing", (chatId) => {
         refreshChatTitleBar();
 });
 
-socket.on("update online users", () => {
+socket.on("update online users", (userId) => {
     if($("#home").length > 0 || $("#chatListPage").length > 0)
         refreshOnlineUsers();
+    else if($("#chatPage").length > 0){
+        if(userId == otherUserId)
+            $("#typing").text("Online");
+    }
 });
 socket.on("disconnected", (userId) => {
     if(userLoggedIn.followers && userLoggedIn.followers.includes(userId) && 
     ($("#home").length > 0 || $("#chatListPage").length > 0)){
         refreshOnlineUsers();
+    }else if($("#chatPage").length > 0){
+        if(userId == otherUserId)
+            refreshChatTitleBar();
     }
 });
 
