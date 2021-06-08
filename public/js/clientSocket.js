@@ -7,6 +7,15 @@ socket.on("connected", () =>{
     connected = true;
     updateOnlineStatus();
 });
+socket.on("typing", (chatId) => {
+    if($(`[data-room="${chatId}"]`).length > 0)
+        $("#typing").text("typing...");
+});
+socket.on("stop typing", (chatId) => {
+    if($(`[data-room="${chatId}"]`).length > 0)
+        refreshChatTitleBar();
+});
+
 socket.on("update online users", () => {
     if($("#home").length > 0 || $("#chatListPage").length > 0)
         refreshOnlineUsers();
@@ -23,7 +32,8 @@ function updateOnlineStatus(){
     $.ajax({
         url : `/api/users/${userLoggedIn._id}/updateOnlineStatus`,
         type: "PUT",
-        data: { online: data }
+        data: { online: data },
+        success: (user) => socket.emit("status updated", user)
     })
 }
 

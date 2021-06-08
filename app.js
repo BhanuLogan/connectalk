@@ -73,11 +73,19 @@ io.on("connection", (socket) => {
         socket.join(userData._id);
         socket.id = userData._id;
         socket.emit("connected");
-        userData.followers.forEach(userId => socket.in(userId).emit("update online users"));
     })
-    socket.on("join room", room => socket.join(room));
-    socket.on("typing", room => socket.in(room).emit("typing"));
-    socket.on("stop typing", room => socket.in(room).emit("stop typing"));
+    socket.on("status updated", userData => {
+        userData.followers.forEach(userId => socket.in(userId).emit("update online users"));
+    });
+    socket.on("join room", room => { 
+        socket.join(room);
+    });
+    socket.on("typing", data => {
+        socket.in(data.otherUserId).emit("typing", data.chatId);
+    });
+    socket.on("stop typing", data => {
+        socket.in(data.otherUserId).emit("stop typing", data.chatId);
+    });
     socket.on("notification received", room => socket.in(room).emit("notification received"));
     socket.on("unfollow", room => {
         socket.in(room).emit("unfollow")

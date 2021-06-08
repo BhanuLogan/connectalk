@@ -712,7 +712,12 @@ button span {
     padding: 6px 12px;
     border-radius: 18px;
     font-size: 14px;
+    max-width: 100%;
+    overflow-wrap: break-word;
+   
 }
+
+
 
 .typingDots img {
     height: 35px;
@@ -851,4 +856,22 @@ button span {
 }
 #notificationList .active {
     background-color: white;
+}
+.chatDate{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+}
+.chatDate span{
+    background-color: rgba(0, 0, 0, 0.03);
+    padding: 7px;
+    border-radius: 10px;
+    font-weight: 400;
+}
+.messageTime {
+   font-size: 10px;
+   display: flex;
+   flex-direction: row-reverse;
+   font-weight: 500;
 }

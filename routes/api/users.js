@@ -132,7 +132,7 @@ router.put("/:userId/updateOnlineStatus", async (req, res, next) => {
     }
     
     updateOnlineStatus(req.params.userId, req.body)
-    .then(() => res.sendStatus(204))
+    .then((user) => res.status(200).send(user))
     .catch(err => {
         console.log(err);
         return res.sendStatus(400);
