@@ -24,6 +24,14 @@ router.get("/", async (req, res, next) => {
             ]
         }
     }
+    if(searchObj.following !== undefined){
+        searchObj.following.push(req.session.user._id);
+        searchObj = {
+            _id : {
+                $nin: searchObj.following
+            }
+        }
+    }
     User.find(searchObj)
     .then(results => res.status(200).send(results))
     .catch(err => {

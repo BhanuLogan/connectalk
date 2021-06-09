@@ -21,6 +21,7 @@ function createPayload(user){
         pageTitle : "Search",
         userLoggedIn : user,
         userLoggedInJS : JSON.stringify(user),
+        selectedTab : "users"
     }
 }
 

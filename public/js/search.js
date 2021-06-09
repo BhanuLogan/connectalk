@@ -1,5 +1,12 @@
 var timer;
-
+$(document).ready(() => {
+    if(selectedTab == "posts")
+        return ;
+    var following = userLoggedIn.following == undefined ? [] : userLoggedIn.following;
+    $.get("/api/users/", { following : userLoggedIn.following }, (results) => {
+        outputUsers(results, $(".resultsContainer"));
+    });  
+});
 $("#searchBox").keydown(() => {
     clearTimeout(timer);
 

@@ -1,12 +1,14 @@
 extends layouts/main-layout.pug
 
 block content  
+    script.
+        var selectedTab = '!{selectedTab}';
     .searchBarContainer     
         i.fas.fa-search 
         input#searchBox(type="text", name="searchBox", placeholder="search for users or posts", data-search=selectedTab)
     .tabsContainer  
-        +createTab("Posts", `/search/posts`, selectedTab != "users")
         +createTab("Users", `/search/users`, selectedTab == "users")
+        +createTab("Posts", `/search/posts`, selectedTab != "users")
     
     .resultsContainer
 
