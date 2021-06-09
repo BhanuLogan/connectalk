@@ -6,7 +6,10 @@ class Database {
     }
     
     connect() {
-        mongoose.connect("mongodb+srv://Bhanu:2E4U3Z66KEpKcCz1@cluster0.lb7gz.mongodb.net/TwitterCloneDB?retryWrites=true&w=majority", { useNewUrlParser: true, 
+        const uri = "mongodb+srv://Bhanu:2E4U3Z66KEpKcCz1@cluster0.lb7gz.mongodb.net/TwitterCloneDB?retryWrites=true&w=majority"
+        if(process.env.environment == "production")
+            uri = "mongodb+srv://divya:4UWbEHyM7FbxkXcu@twitterclone.snzuf.mongodb.net/TwitterCloneDB?retryWrites=true&w=majority"
+        mongoose.connect(uri, { useNewUrlParser: true, 
         useUnifiedTopology: true, useCreateIndex : true })
         .then(() => {
             console.log("Database connection successful!!!");
