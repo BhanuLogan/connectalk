@@ -75,13 +75,13 @@ io.on("connection", (socket) => {
         socket.emit("connected");
     })
     socket.on("status updated", userData => {
-        userData.followers.forEach(userId => socket.in(userId).emit("update online users", userData._id));
+        socket.broadcast.emit("update online users", userData._id);
     });
     socket.on("join room", room => { 
         socket.join(room);
     });
     socket.on("typing", data => {
-        socket.in(data.otherUserId).emit("typing", data.chatId);
+        socket.in(data.user._id).emit("typing", { chatId: data.chatId, name: data.name });
     });
     socket.on("stop typing", data => {
         socket.in(data.otherUserId).emit("stop typing", data.chatId);

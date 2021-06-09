@@ -1,5 +1,6 @@
 var typing = false;
 var lastTypingTime;
+var chat;
 var otherUserId;
 $(document).ready(() => {
     socket.emit("join room", chatId);
@@ -51,6 +52,7 @@ function sameDay(curDate, prevDate){
 
 function refreshChatTitleBar(){
     $.get(`/api/chats/${chatId}`, (data) =>{ 
+        chat = data;
         $("#chatName").text(getChatName(data));
         var onlineStatus = getOnlineStatus(data.users);
         $("#typing").text(onlineStatus);
@@ -126,17 +128,30 @@ function updateTyping(){
     if(!connected) return ;
     if(!typing){
         typing = true;
-        socket.emit("typing", { otherUserId, chatId });
+        if(chat){
+            chat.users.forEach(user => {
+                if(user._id == userLoggedIn._id) return ;
+                socket.emit("typing", { user, chatId, name: userLoggedIn.firstName });
+            });
+        }
     }
     lastTypingTime = new Date().getTime();
     var timerLength = 2000;
     setTimeout(() => {
         var diff = new Date().getTime() - lastTypingTime;
         if(diff >= timerLength && typing){
-            socket.emit("stop typing", { otherUserId, chatId });
+            emitStopTypingEvent();
             typing = false;
         }
     }, timerLength);
+}
+function emitStopTypingEvent(){
+    if(chat){
+        chat.users.forEach(user => {
+            if(user._id == userLoggedIn._id) return ;
+            socket.emit("stop typing", { otherUserId: user._id, chatId });
+        });
+    }
 }
 $(".sendMessageButton").click(() => {
     messageSubmitted();
@@ -146,7 +161,7 @@ function messageSubmitted(){
     let content = $(".inputTextBox").val().trim();
     if(content != ""){
         sendMessage(content);
-        socket.emit("stop typing", { otherUserId, chatId });
+        emitStopTypingEvent();
         $(".inputTextBox").val("");
         typing = false;
     }

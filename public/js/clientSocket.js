@@ -7,9 +7,9 @@ socket.on("connected", () =>{
     connected = true;
     updateOnlineStatus();
 });
-socket.on("typing", (chatId) => {
-    if($(`[data-room="${chatId}"]`).length > 0)
-        $("#typing").text("typing...");
+socket.on("typing", (data) => {
+    if($(`[data-room="${data.chatId}"]`).length > 0)
+        $("#typing").text(`${data.name} is typing...`);
 });
 socket.on("stop typing", (chatId) => {
     if($(`[data-room="${chatId}"]`).length > 0)
@@ -17,15 +17,17 @@ socket.on("stop typing", (chatId) => {
 });
 
 socket.on("update online users", (userId) => {
-    if($("#home").length > 0 || $("#chatListPage").length > 0)
-        refreshOnlineUsers();
-    else if($("#chatPage").length > 0){
+    console.log("tererere");
+    if($("#home").length > 0 || $("#chatListPage").length > 0){
+        if(userLoggedIn.following && userLoggedIn.following.includes(userId))
+            refreshOnlineUsers();
+    }else if($("#chatPage").length > 0){
         if(userId == otherUserId)
             $("#typing").text("Online");
     }
 });
 socket.on("disconnected", (userId) => {
-    if(userLoggedIn.followers && userLoggedIn.followers.includes(userId) && 
+    if(userLoggedIn.following && userLoggedIn.following.includes(userId) && 
     ($("#home").length > 0 || $("#chatListPage").length > 0)){
         refreshOnlineUsers();
     }else if($("#chatPage").length > 0){
